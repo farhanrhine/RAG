@@ -1,0 +1,5 @@
+python-dotenv
+chromadb
+langchain
+huggingface-hub
+ollama
