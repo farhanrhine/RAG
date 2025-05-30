@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import chromadb
 from huggingface_hub import InferenceClient
 from chromadb.utils.embedding_functions import HuggingFaceEmbeddingFunction
+import requests
+import json
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,7 +13,7 @@ load_dotenv()
 hf_key = os.getenv("HUGGINGFACE_API_KEY")
 
 hf_ef = HuggingFaceEmbeddingFunction(
-    api_key=hf_key, model_name="sentence-transformers/all-MiniLM-L6-v2"
+    api_key=hf_key, model_name="nomic-embed-text"
 )
 
 # 1. Initialize the Chroma client with persistence
@@ -67,21 +69,34 @@ for doc in documents:
 
 print(f"Split documents into {len(chunked_documents)} chunks")
 
+# Ollama API endpoint - assuming it's running locally
+OLLAMA_API_URL = "http://localhost:11434/api"
 
-# # Function to generate embeddings using OpenAI API
-# def get_openai_embedding(text):
-#     response = client.embeddings.create(input=text, model="text-embedding-3-small")
-#     embedding = response.data[0].embedding
-#     print("==== Generating embeddings... ====")
-#     return embedding
+# NOW ITS TIME FOR EMBEDDING 
+
+# Function to generate embeddings using Ollama API
+def get_ollama_embedding(text):
+    try:
+        # Using Ollama's embedding API endpoint
+        response = requests.post(
+            f"{OLLAMA_API_URL}/embeddings",
+            json={"model": "nomic-embed-text", "prompt": text}
+        )
+        response.raise_for_status()  # heyRaise an exception for HTTP errors
+        embedding = response.json().get("embedding", [])
+        print("==== Generated embedding successfully ====")
+        return embedding
+    except Exception as e:
+        print(f"Error generating embedding: {e}")
+        return []
 
 
-# # Generate embeddings for the document chunks
-# for doc in chunked_documents:
-#     print("==== Generating embeddings... ====")
-#     doc["embedding"] = get_openai_embedding(doc["text"])
+# Generate embeddings for the document chunks
+for doc in chunked_documents:
+    print("==== Generating embeddings... ====")
+    doc["embedding"] = get_ollama_embedding(doc["text"])
 
-# # print(doc["embedding"])
+print(doc["embedding"])
 
 # # Upsert documents with embeddings into Chroma
 # for doc in chunked_documents:
