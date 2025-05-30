@@ -1,3 +1,4 @@
+# simple chatbot using huggingface api and chromadb
 import os
 from dotenv import load_dotenv
 import chromadb

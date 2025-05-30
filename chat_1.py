@@ -24,7 +24,7 @@ collection = chroma_client.get_or_create_collection(
 # 2. Initialize the InferenceClient/model you want to use
 client = InferenceClient(model="HuggingFaceH4/zephyr-7b-beta", token=hf_key)
 
-# Function to load documents from a directory
+# 3. Function to load documents from a directory, where i store my documents
 def load_documents_from_directory(directory_path):
     print("==== Loading documents from directory ====")
     documents = []
@@ -37,8 +37,8 @@ def load_documents_from_directory(directory_path):
     return documents
 
 
-# Function to split text into chunks
-def split_text(text, chunk_size=1000, chunk_overlap=20): # more overlap for better context
+# 4. Function to from load documents to split text into chunks so i can embed them later , and its store in database
+def split_text(text, chunk_size=1000, chunk_overlap=20): # more overlap for better contextual meaning
     chunks = []
     start = 0
     while start < len(text):
@@ -48,23 +48,24 @@ def split_text(text, chunk_size=1000, chunk_overlap=20): # more overlap for bett
     return chunks
 
 
-# Load documents from the directory
+# 5. Load documents from the directory after splitting them into chunks
 directory_path = "./news_articles"
 documents = load_documents_from_directory(directory_path)
 
 print(f"Loaded {len(documents)} documents")
-### now i have a documents in embeding format i will split them into chunks
+
+### now i have a documents in text format i will split them into chunks and store them in database
 
 
-# # Split documents into chunks
-# chunked_documents = []
-# for doc in documents:
-#     chunks = split_text(doc["text"])
-#     print("==== Splitting docs into chunks ====")
-#     for i, chunk in enumerate(chunks):
-#         chunked_documents.append({"id": f"{doc['id']}_chunk{i+1}", "text": chunk})
+# Split documents into chunks
+chunked_documents = []
+for doc in documents:
+    chunks = split_text(doc["text"])
+    print("==== Splitting docs into chunks ====")
+    for i, chunk in enumerate(chunks):
+        chunked_documents.append({"id": f"{doc['id']}_chunk{i+1}", "text": chunk})
 
-# # print(f"Split documents into {len(chunked_documents)} chunks")
+print(f"Split documents into {len(chunked_documents)} chunks")
 
 
 # # Function to generate embeddings using OpenAI API
